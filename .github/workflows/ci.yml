@@ -34,3 +34,27 @@ jobs:
         run: npm run build
       - name: unit tests + coverage (>=80% gate)
         run: npm run coverage
+
+  e2e:
+    name: e2e + a11y (axe WCAG 2.2 incl. target-size)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: install chromium
+        run: npx playwright install --with-deps chromium
+      - name: playwright e2e (real-browser capture pipeline + axe a11y + design screenshots)
+        run: npm run e2e
+      - name: upload design screenshots (visual-inspection artifacts)
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: design-screenshots
+          path: e2e/screenshots/
+          if-no-files-found: ignore

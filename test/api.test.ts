@@ -150,3 +150,74 @@ describe("submitReport", () => {
     expect(result.status).toBe("error");
   });
 });
+
+describe("submitReport — tolerant body parsing (branch coverage)", () => {
+  const payload: ReportPayload = {
+    repo: "hub.dig.net",
+    description: "It broke",
+    challenge_token: "tok-1",
+    hp: "",
+    opened_at_ms: 1,
+  };
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("handles a non-JSON error body on 429 (message undefined, still rate_limited)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        json: () => Promise.reject(new SyntaxError("not json")),
+      }),
+    );
+    const result = await submitReport(API_BASE, payload);
+    expect(result).toEqual({ status: "rate_limited", message: undefined });
+  });
+
+  it("handles a non-JSON error body on 500 with a generic status message", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: () => Promise.reject(new SyntaxError("not json")),
+      }),
+    );
+    const result = await submitReport(API_BASE, payload);
+    expect(result).toEqual({ status: "error", message: "Request failed (500)." });
+  });
+
+  it("handles an accepted response with an unparseable body (id falls back to empty)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.reject(new SyntaxError("not json")),
+      }),
+    );
+    const result = await submitReport(API_BASE, payload);
+    expect(result).toEqual({ status: "accepted", id: "", issue: null });
+  });
+
+  it("returns a generic network message when fetch rejects with a non-Error value", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue("weird-rejection"));
+    const result = await submitReport(API_BASE, payload);
+    expect(result.status).toBe("error");
+    if (result.status === "error") {
+      expect(result.message).toMatch(/network error/i);
+    }
+  });
+
+  it("fetchChallenge tolerates a body missing fields (token/exp coerced to defaults)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve({}) }),
+    );
+    const result = await fetchChallenge(API_BASE);
+    expect(result).toEqual({ token: "", exp: 0 });
+  });
+});

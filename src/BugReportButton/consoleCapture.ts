@@ -10,8 +10,12 @@
  * restores the original console methods and removes the window listeners.
  */
 
-/** Severity level of a captured console/runtime entry. */
-export type ConsoleLogLevel = "debug" | "log" | "info" | "warn" | "error";
+/**
+ * Severity level of a captured console/runtime entry. `"network"` is reserved for network-error
+ * entries (see `networkCapture.ts`), which are merged into the same `console_logs` payload field;
+ * console capture itself never emits it.
+ */
+export type ConsoleLogLevel = "debug" | "log" | "info" | "warn" | "error" | "network";
 
 /** One captured console call or runtime error, as sent in a bug report's `console_logs`. */
 export interface ConsoleLogEntry {

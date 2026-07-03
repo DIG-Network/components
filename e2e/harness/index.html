@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="app-version" content="2.3.4-e2e" />
+    <title>BugReportButton e2e harness</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: #f4f2f9;
+        color: #221a2e;
+      }
+      @media (prefers-color-scheme: dark) {
+        body { background: #120d1c; color: #efeaf7; }
+        .card { background: #1d1629 !important; border-color: #322a44 !important; }
+        header.hero { background: linear-gradient(135deg, #2b1a54, #451a52) !important; }
+      }
+      header.hero {
+        padding: 48px 32px;
+        background: linear-gradient(135deg, #7a3dff, #c13de0);
+        color: #fff;
+      }
+      header.hero h1 { margin: 0 0 8px; font-size: 28px; }
+      header.hero p { margin: 0; opacity: 0.9; }
+      main { padding: 32px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+      .card {
+        background: #fff;
+        border: 1px solid #e6e1ef;
+        border-radius: 12px;
+        padding: 20px;
+      }
+      .card h2 { margin: 0 0 8px; font-size: 16px; }
+      .card p { margin: 0; font-size: 13.5px; line-height: 1.5; opacity: 0.8; }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <h1>DIG demo application</h1>
+      <p>This page stands in for a host app embedding the bug-report widget.</p>
+    </header>
+    <main>
+      <section class="card">
+        <h2>Store overview</h2>
+        <p>Distinctive page content the automatic screenshot must capture cleanly — without the report panel or launcher on top of it.</p>
+      </section>
+      <section class="card">
+        <h2>Recent capsules</h2>
+        <p>capsule-7f3a · capsule-91bc · capsule-d044</p>
+      </section>
+      <section class="card">
+        <h2>Wallet</h2>
+        <p>Balance: 1,234 DIG</p>
+      </section>
+    </main>
+    <div id="root"></div>
+    <script type="module" src="/main.tsx"></script>
+  </body>
+</html>

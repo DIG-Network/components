@@ -275,6 +275,10 @@ including `target-size`**.
 - Launcher: a real `<button>`, `aria-label="Report a bug"`, `aria-haspopup="dialog"`,
   `aria-expanded` reflecting panel state.
 - Panel: `role="dialog"`, `aria-modal="true"`, `aria-labelledby` pointing at the panel heading.
+  The panel's title bar is a plain container (NOT a `<header>` element): a `role="dialog"` does not
+  scope a descendant `<header>` out of its implicit `banner` role, and the host app shell already
+  owns the document's single banner landmark. Introducing a second banner fails WCAG 2.2
+  (axe `landmark-unique`), so the widget MUST NOT emit a `banner` (or any other page landmark).
 - **Target size (WCAG 2.5.8):** every interactive target is at least 24×24 CSS px; the launcher
   (56px) and the primary Send/Done action (44px min-height) exceed the comfort size. The two
   controls that historically failed (the file-input control and the console toggle) are now a

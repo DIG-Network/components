@@ -343,7 +343,11 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
             data-testid="bugreport-panel"
             className="digbr-panel"
           >
-            <header className="digbr-header">
+            {/* Plain container, NOT a <header>: a role=dialog does not scope a descendant
+                <header> out of the implicit `banner` role, and every host app shell already
+                renders its own banner. Two banner landmarks fail WCAG 2.2 (axe landmark-unique).
+                The dialog is named via aria-labelledby → the <h2> below. */}
+            <div className="digbr-header">
               <span className="digbr-header-icon" aria-hidden="true">
                 <BugIcon size={20} />
               </span>
@@ -362,7 +366,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
               >
                 <CloseIcon />
               </button>
-            </header>
+            </div>
 
             <div role="status" aria-live="polite" data-testid="bugreport-status" className="digbr-sr-only">
               {statusText}

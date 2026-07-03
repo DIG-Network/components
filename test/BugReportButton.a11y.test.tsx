@@ -54,6 +54,19 @@ describe("<BugReportButton> — accessibility", () => {
     expect(panel).toHaveAccessibleName(/report a bug/i);
   });
 
+  it("the open panel introduces no second banner landmark (host app already has one)", async () => {
+    const user = userEvent.setup();
+    render(<BugReportButton repo="hub.dig.net" />);
+    await user.click(screen.getByTestId("bugreport-launcher"));
+    await screen.findByRole("dialog");
+
+    // The panel's title bar must NOT be a <header>/role=banner: every host app shell already
+    // renders its own banner, and two banner landmarks in one document fails WCAG 2.2
+    // (axe landmark-unique / "more than one banner landmark"). A role=dialog does not scope a
+    // descendant <header> out of the banner role, so the title bar must be a plain container.
+    expect(screen.queryByRole("banner")).toBeNull();
+  });
+
   it("moves focus into the panel when it opens", async () => {
     const user = userEvent.setup();
     render(<BugReportButton repo="hub.dig.net" />);

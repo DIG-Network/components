@@ -1,0 +1,73 @@
+{
+  "name": "@dignetwork/components",
+  "version": "0.1.0",
+  "description": "Reusable React component library for DIG Network apps. Ships as ESM + CJS + .d.ts; React is a peer dependency. First component: BugReportButton, a floating bug-report widget for any DIG app.",
+  "license": "MIT",
+  "author": "DIG Network",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DIG-Network/components"
+  },
+  "homepage": "https://github.com/DIG-Network/components#readme",
+  "bugs": {
+    "url": "https://github.com/DIG-Network/components/issues"
+  },
+  "keywords": [
+    "dig",
+    "dig-network",
+    "react",
+    "components",
+    "bug-report",
+    "ui"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "verify": "npm run typecheck && npm run build && npm run coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "@vitest/coverage-v8": "^2.1.9",
+    "jsdom": "^25.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9"
+  }
+}

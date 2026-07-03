@@ -3,6 +3,7 @@ import { render, screen, waitFor, fireEvent, act } from "@testing-library/react"
 import userEvent from "@testing-library/user-event";
 import { BugReportButton } from "../src/BugReportButton/BugReportButton";
 import * as api from "../src/BugReportButton/api";
+import * as screenshotCapture from "../src/BugReportButton/screenshotCapture";
 
 vi.mock("../src/BugReportButton/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../src/BugReportButton/api")>();
@@ -13,8 +14,19 @@ vi.mock("../src/BugReportButton/api", async (importOriginal) => {
   };
 });
 
+// Rasterization needs a real browser; stub the capture layer (its own unit suite covers it).
+vi.mock("../src/BugReportButton/screenshotCapture", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/BugReportButton/screenshotCapture")>();
+  return {
+    ...actual,
+    captureViewportScreenshot: vi.fn(),
+    captureScreenViaDisplayMedia: vi.fn(),
+  };
+});
+
 const fetchChallengeMock = vi.mocked(api.fetchChallenge);
 const submitReportMock = vi.mocked(api.submitReport);
+const captureViewportScreenshotMock = vi.mocked(screenshotCapture.captureViewportScreenshot);
 
 async function openPanel() {
   const user = userEvent.setup();
@@ -23,6 +35,10 @@ async function openPanel() {
   await waitFor(() => expect(fetchChallengeMock).toHaveBeenCalled());
   return user;
 }
+
+beforeEach(() => {
+  captureViewportScreenshotMock.mockResolvedValue(null);
+});
 
 describe("<BugReportButton> — challenge lifecycle", () => {
   beforeEach(() => {
@@ -136,7 +152,7 @@ describe("<BugReportButton> — four states", () => {
     await waitFor(() => expect(screen.getByTestId("bugreport-success")).toBeInTheDocument());
   });
 
-  it("success: shows the report id and GitHub issue URL when returned", async () => {
+  it("success: shows the report id and NO GitHub issue link (issue URLs are maintainer-internal)", async () => {
     submitReportMock.mockResolvedValue({
       status: "accepted",
       id: "abc-123",
@@ -148,20 +164,20 @@ describe("<BugReportButton> — four states", () => {
 
     await waitFor(() => expect(screen.getByTestId("bugreport-success")).toBeInTheDocument());
     expect(screen.getByTestId("bugreport-report-id")).toHaveTextContent("abc-123");
-    expect(screen.getByTestId("bugreport-issue-link")).toHaveAttribute(
-      "href",
-      "https://github.com/DIG-Network/hub.dig.net/issues/7",
-    );
+    // Even when the API returns an issue reference, the UI must not surface it.
+    expect(screen.queryByTestId("bugreport-issue-link")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(screen.getByTestId("bugreport-status")).toHaveTextContent(/sent/i);
   });
 
-  it("success: does not render an issue link when none was returned", async () => {
+  it("success: renders identically when no issue was returned", async () => {
     submitReportMock.mockResolvedValue({ status: "accepted", id: "abc-999", issue: null });
     const user = await openPanel();
     await user.type(screen.getByTestId("bugreport-description-input"), "hello");
     await user.click(screen.getByTestId("bugreport-submit"));
 
     await waitFor(() => expect(screen.getByTestId("bugreport-success")).toBeInTheDocument());
+    expect(screen.getByTestId("bugreport-report-id")).toHaveTextContent("abc-999");
     expect(screen.queryByTestId("bugreport-issue-link")).not.toBeInTheDocument();
   });
 
@@ -197,7 +213,7 @@ describe("<BugReportButton> — four states", () => {
   });
 });
 
-describe("<BugReportButton> — screenshot preview", () => {
+describe("<BugReportButton> — screenshot preview (file attach)", () => {
   beforeEach(() => {
     fetchChallengeMock.mockResolvedValue({ token: "chal-1", exp: Date.now() + 300_000 });
   });
@@ -206,7 +222,7 @@ describe("<BugReportButton> — screenshot preview", () => {
     vi.clearAllMocks();
   });
 
-  it("shows the file-attach fallback with no auto-captured screenshot when getDisplayMedia is unsupported", async () => {
+  it("shows the attach fallback with no preview when auto-capture fails", async () => {
     await openPanel();
     expect(screen.queryByTestId("bugreport-screenshot-preview")).not.toBeInTheDocument();
     expect(screen.getByTestId("bugreport-screenshot-file-input")).toBeInTheDocument();
@@ -263,11 +279,13 @@ describe("<BugReportButton> — console log preview", () => {
     await user.click(screen.getByTestId("bugreport-launcher"));
     await waitFor(() => expect(fetchChallengeMock).toHaveBeenCalled());
 
-    const details = screen.getByTestId("bugreport-console-details") as HTMLDetailsElement;
-    expect(details.open).toBe(false);
+    const toggle = screen.getByTestId("bugreport-console-toggle");
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByTestId("bugreport-console-list")).not.toBeVisible();
 
-    await user.click(screen.getByTestId("bugreport-console-toggle"));
-    expect(details.open).toBe(true);
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByTestId("bugreport-console-list")).toBeVisible();
     expect(screen.getByTestId("bugreport-console-list")).toHaveTextContent(
       "captured before opening the panel",
     );

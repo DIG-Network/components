@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BugReportButton } from "../src/BugReportButton/BugReportButton";
 import * as api from "../src/BugReportButton/api";
+import { STYLE_ELEMENT_ID } from "../src/BugReportButton/styles";
 
 vi.mock("../src/BugReportButton/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../src/BugReportButton/api")>();
@@ -10,6 +11,16 @@ vi.mock("../src/BugReportButton/api", async (importOriginal) => {
     ...actual,
     fetchChallenge: vi.fn(),
     submitReport: vi.fn(),
+  };
+});
+
+// Rasterization needs a real browser; stub the capture layer (its own unit suite covers it).
+vi.mock("../src/BugReportButton/screenshotCapture", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../src/BugReportButton/screenshotCapture")>();
+  return {
+    ...actual,
+    captureViewportScreenshot: vi.fn().mockResolvedValue(null),
+    captureScreenViaDisplayMedia: vi.fn().mockResolvedValue(null),
   };
 });
 
@@ -136,11 +147,39 @@ describe("<BugReportButton> — accessibility", () => {
     await user.click(screen.getByTestId("bugreport-launcher"));
     await screen.findByRole("dialog");
 
-    expect(screen.getByLabelText(/title/i)).toBe(screen.getByTestId("bugreport-title-input"));
+    expect(screen.getByLabelText(/^title/i)).toBe(screen.getByTestId("bugreport-title-input"));
     expect(screen.getByLabelText(/what happened/i)).toBe(
       screen.getByTestId("bugreport-description-input"),
     );
-    expect(screen.getByLabelText(/contact/i)).toBe(screen.getByTestId("bugreport-contact-input"));
+    expect(screen.getByLabelText(/^contact/i)).toBe(screen.getByTestId("bugreport-contact-input"));
+    expect(screen.getByLabelText(/attach a screenshot image/i)).toBe(
+      screen.getByTestId("bugreport-screenshot-file-input"),
+    );
+    expect(screen.getByTestId("bugreport-screen-capture")).toHaveAccessibleName(/capture screen/i);
+  });
+
+  it("the diagnostics disclosures are real buttons wired with aria-expanded + aria-controls", async () => {
+    const user = userEvent.setup();
+    render(<BugReportButton repo="hub.dig.net" />);
+    await user.click(screen.getByTestId("bugreport-launcher"));
+    await screen.findByRole("dialog");
+
+    for (const [toggleId, regionId] of [
+      ["bugreport-console-toggle", "bugreport-console-region"],
+      ["bugreport-network-toggle", "bugreport-network-region"],
+    ] as const) {
+      const toggle = screen.getByTestId(toggleId);
+      expect(toggle.tagName).toBe("BUTTON");
+      expect(toggle).toHaveAttribute("aria-expanded", "false");
+      expect(toggle).toHaveAttribute("aria-controls", regionId);
+      // aria-controls must reference a real, always-present element (axe aria-valid-attr-value).
+      expect(document.getElementById(regionId)).not.toBeNull();
+
+      await user.click(toggle);
+      expect(toggle).toHaveAttribute("aria-expanded", "true");
+      await user.click(toggle);
+      expect(toggle).toHaveAttribute("aria-expanded", "false");
+    }
   });
 
   it("re-clicking the launcher toggles the panel closed", async () => {
@@ -154,5 +193,23 @@ describe("<BugReportButton> — accessibility", () => {
     await user.click(launcher);
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(launcher).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("marks the widget's own roots with the capture-exclusion attribute", async () => {
+    const user = userEvent.setup();
+    render(<BugReportButton repo="hub.dig.net" />);
+    expect(screen.getByTestId("bugreport-launcher")).toHaveAttribute("data-dig-bugreport");
+
+    await user.click(screen.getByTestId("bugreport-launcher"));
+    await screen.findByRole("dialog");
+    expect(screen.getByTestId("bugreport-overlay")).toHaveAttribute("data-dig-bugreport");
+  });
+
+  it("injects its scoped stylesheet while mounted and removes it on unmount", () => {
+    const { unmount } = render(<BugReportButton repo="hub.dig.net" />);
+    expect(document.getElementById(STYLE_ELEMENT_ID)).not.toBeNull();
+
+    unmount();
+    expect(document.getElementById(STYLE_ELEMENT_ID)).toBeNull();
   });
 });

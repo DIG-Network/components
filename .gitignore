@@ -4,3 +4,6 @@ coverage/
 *.tsbuildinfo
 .DS_Store
 npm-debug.log*
+test-results/
+playwright-report/
+e2e/screenshots/

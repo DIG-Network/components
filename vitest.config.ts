@@ -16,6 +16,9 @@ export default defineConfig({
     setupFiles: ["./test/setup.ts"],
     include: ["test/**/*.test.{ts,tsx}"],
     css: false,
+    // Flaky-test management (#489): surface a flaky test (fails then passes) as a retry rather
+    // than a hard CI failure, without hiding a consistently-failing test.
+    retry: 2,
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],

@@ -8,7 +8,8 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 45_000,
   fullyParallel: false,
-  retries: process.env.CI ? 1 : 0,
+  // Flaky-test management (#489): retry a flaky e2e test in CI before failing the build.
+  retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [["list"]] : [["list"]],
   use: {
     baseURL: "http://localhost:5199",

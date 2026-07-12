@@ -37,10 +37,11 @@ jobs:
           cache: npm
           registry-url: "https://registry.npmjs.org"
       - run: npm ci
-      # Gate the publish on a green build + tests (build also runs via prepublishOnly).
-      - run: npm run typecheck
+      # Deploy = build + package + publish only. The PR's CI gates (typecheck, coverage, e2e)
+      # already tested this exact tree before merge — do not re-run the full suite here (#488:
+      # a re-run here was blocking releases on transient/flaky failures after the tree was
+      # already verified green).
       - run: npm run build
-      - run: npm run coverage
       # Trusted publishing requires npm CLI >= 11.5.1; Node 22 bundles npm 10.
       - name: upgrade npm for trusted publishing
         run: |

@@ -1,6 +1,6 @@
 {
   "name": "@dignetwork/components",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Reusable React component library for DIG Network apps. Ships as ESM + CJS + .d.ts; React is a peer dependency. First component: BugReportButton, a floating bug-report widget for any DIG app.",
   "license": "MIT",
   "author": "DIG Network",

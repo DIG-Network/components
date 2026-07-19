@@ -9,7 +9,7 @@ name: publish-npm
 # in package.json on the released commit — bump it before tagging.
 on:
   push:
-    tags: ['v*']
+    tags: ["v*"]
   release:
     types: [published]
   workflow_dispatch: {}

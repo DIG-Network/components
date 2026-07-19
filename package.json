@@ -1,6 +1,6 @@
 {
   "name": "@dignetwork/components",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Reusable React component library for DIG Network apps. Ships as ESM + CJS + .d.ts; React is a peer dependency. First component: BugReportButton, a floating bug-report widget for any DIG app.",
   "license": "MIT",
   "author": "DIG Network",
@@ -52,7 +52,9 @@
     "coverage": "vitest run --coverage",
     "verify": "npm run typecheck && npm run build && npm run coverage",
     "prepublishOnly": "npm run build",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "peerDependencies": {
     "react": ">=18.0.0",
@@ -70,6 +72,7 @@
     "@vitejs/plugin-react": "^4.3.2",
     "@vitest/coverage-v8": "^2.1.9",
     "jsdom": "^25.0.1",
+    "prettier": "^3.3.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tsup": "^8.3.5",

@@ -86,9 +86,7 @@ describe("installNetworkCapture — fetch", () => {
     window.fetch = vi.fn().mockRejectedValue(reason);
     handle = installNetworkCapture();
 
-    await expect(window.fetch("https://api.example.test/down", { method: "post" })).rejects.toBe(
-      reason,
-    );
+    await expect(window.fetch("https://api.example.test/down", { method: "post" })).rejects.toBe(reason);
     const entries = handle.getEntries();
     expect(entries).toHaveLength(1);
     expect(entries[0]!.status).toBe("failed");

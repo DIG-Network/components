@@ -90,10 +90,7 @@ async function readErrorMessage(response: Response): Promise<string | undefined>
  * limit, or any other failure) is represented in the returned discriminated union so the UI can
  * render an honest state instead of an unhandled rejection.
  */
-export async function submitReport(
-  apiBase: string,
-  payload: ReportPayload,
-): Promise<SubmitReportResult> {
+export async function submitReport(apiBase: string, payload: ReportPayload): Promise<SubmitReportResult> {
   let response: Response;
   try {
     response = await fetch(`${apiBase}/v1/reports`, {

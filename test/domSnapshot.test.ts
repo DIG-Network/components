@@ -86,10 +86,7 @@ describe("cloneViewport", () => {
 describe("inlineImages", () => {
   it("replaces a same-origin img src with a data URL", async () => {
     const blob = new Blob(["png-bytes"], { type: "image/png" });
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({ ok: true, blob: () => Promise.resolve(blob) }),
-    );
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, blob: () => Promise.resolve(blob) }));
 
     const root = document.createElement("div");
     root.innerHTML = `<img src="https://example.test/pic.png" />`;

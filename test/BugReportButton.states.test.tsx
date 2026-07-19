@@ -187,7 +187,9 @@ describe("<BugReportButton> — four states", () => {
     await user.type(screen.getByTestId("bugreport-description-input"), "hello");
     await user.click(screen.getByTestId("bugreport-submit"));
 
-    await waitFor(() => expect(screen.getByTestId("bugreport-error")).toHaveTextContent("Please wait a bit."));
+    await waitFor(() =>
+      expect(screen.getByTestId("bugreport-error")).toHaveTextContent("Please wait a bit."),
+    );
     expect(screen.getByTestId("bugreport-submit")).toHaveTextContent(/retry/i);
     expect(screen.getByTestId("bugreport-submit")).toBeEnabled();
   });

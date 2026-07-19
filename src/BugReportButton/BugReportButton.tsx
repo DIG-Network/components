@@ -96,12 +96,8 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
     const networkHandle = installNetworkCapture(NETWORK_BUFFER_SIZE);
     consoleHandleRef.current = consoleHandle;
     networkHandleRef.current = networkHandle;
-    const unsubscribeConsole = consoleHandle.subscribe(() =>
-      setConsoleEntries(consoleHandle.getEntries()),
-    );
-    const unsubscribeNetwork = networkHandle.subscribe(() =>
-      setNetworkEntries(networkHandle.getEntries()),
-    );
+    const unsubscribeConsole = consoleHandle.subscribe(() => setConsoleEntries(consoleHandle.getEntries()));
+    const unsubscribeNetwork = networkHandle.subscribe(() => setNetworkEntries(networkHandle.getEntries()));
     return () => {
       unsubscribeConsole();
       unsubscribeNetwork();
@@ -428,7 +424,10 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
 
                   <div className="digbr-field">
                     <label htmlFor="bugreport-description" className="digbr-label">
-                      What happened? <span className="digbr-req" aria-hidden="true">*</span>
+                      What happened?{" "}
+                      <span className="digbr-req" aria-hidden="true">
+                        *
+                      </span>
                     </label>
                     <textarea
                       id="bugreport-description"
@@ -482,8 +481,8 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                         </div>
                         {screenshotOrigin === "auto" && (
                           <p className="digbr-shot-caption">
-                            Captured automatically — the report panel itself is never included.
-                            Remove or replace it if it isn't helpful.
+                            Captured automatically — the report panel itself is never included. Remove or
+                            replace it if it isn't helpful.
                           </p>
                         )}
                       </>
@@ -501,7 +500,9 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                           type="file"
                           accept="image/png,image/jpeg"
                           className="digbr-file-input"
-                          aria-label={screenshot ? "Replace the screenshot image" : "Attach a screenshot image"}
+                          aria-label={
+                            screenshot ? "Replace the screenshot image" : "Attach a screenshot image"
+                          }
                           data-testid="bugreport-screenshot-file-input"
                           onChange={handleFileChange}
                           disabled={sending}
@@ -518,8 +519,8 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                       </button>
                     </div>
                     <p className="digbr-shot-caption">
-                      "Capture screen" opens your browser's share dialog — use it when the
-                      automatic shot misses something (embedded frames, 3D content).
+                      "Capture screen" opens your browser's share dialog — use it when the automatic shot
+                      misses something (embedded frames, 3D content).
                     </p>
                   </div>
 

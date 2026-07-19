@@ -26,7 +26,7 @@ describe("resolveAppVersion", () => {
     expect(resolveAppVersion("1.2.3")).toBe("1.2.3");
   });
 
-  it("falls back to <meta name=\"app-version\"> when no explicit value is given", () => {
+  it('falls back to <meta name="app-version"> when no explicit value is given', () => {
     addMeta("2.4.6");
     window.__APP_VERSION__ = "3.0.0";
     expect(resolveAppVersion()).toBe("2.4.6");

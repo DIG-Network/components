@@ -46,7 +46,7 @@ With all options:
 
 | Prop | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `repo` | `string` | **yes** | — | The target GitHub repo this report is filed against, e.g. `"hub.dig.net"` or `"xchtip.app"`. Must be on the bugreport service's repo allowlist. |
+| `repo` | `string` | **yes** | — | App identifier; filed to DIG-Network/dig_ecosystem with area: label. E.g. `"hub.dig.net"` or `"xchtip.app"`. Must be on the service's allowlist. |
 | `apiBase` | `string` | no | `"https://api.bugreport.dig.net"` | Base URL of the bug-report service. |
 | `position` | `"bottom-right" \| "bottom-left"` | no | `"bottom-right"` | Corner the floating launcher docks to. |
 | `appVersion` | `string` | no | auto-detected | Sent as `app_version` on the report. When omitted, auto-detected (see below). |

@@ -33,13 +33,13 @@ bugreport.dig.net service (or a compatible `apiBase`) exactly as described here.
 
 ### 2.1 Props
 
-| Prop | Type | Required | Default |
-|---|---|---|---|
-| `repo` | `string` | yes | — |
-| `apiBase` | `string` | no | `"https://api.bugreport.dig.net"` |
-| `position` | `"bottom-right" \| "bottom-left"` | no | `"bottom-right"` |
-| `appVersion` | `string` | no | auto-detected (§2.8) |
-| `theme` | `{ accentColor?: string; accentColorSecondary?: string }` | no | `{ accentColor: "#7a3dff", accentColorSecondary: "#c13de0" }` |
+| Prop         | Type                                                      | Required | Default                                                       |
+| ------------ | --------------------------------------------------------- | -------- | ------------------------------------------------------------- |
+| `repo`       | `string`                                                  | yes      | —                                                             |
+| `apiBase`    | `string`                                                  | no       | `"https://api.bugreport.dig.net"`                             |
+| `position`   | `"bottom-right" \| "bottom-left"`                         | no       | `"bottom-right"`                                              |
+| `appVersion` | `string`                                                  | no       | auto-detected (§2.8)                                          |
+| `theme`      | `{ accentColor?: string; accentColorSecondary?: string }` | no       | `{ accentColor: "#7a3dff", accentColorSecondary: "#c13de0" }` |
 
 `repo` is passed through verbatim to the server, which validates it against its own allowlist
 (§3.4 of bugreport.dig.net's `SPEC.md`). This package does not itself validate `repo` — the server
@@ -175,12 +175,12 @@ match. A client MUST NOT deviate from field names, types, or the request sequenc
 
 **Response handling** (discriminated purely on HTTP status + body, never inferred from timing):
 
-| Status | Client outcome |
-|---|---|
-| `200` or `202` | **accepted** — `{ id, issue }` from the body drive the success view. `issue` is `null` when no GitHub issue was created (still a successful report). The UI shows `id` only; `issue` is never surfaced (§2.2). |
-| `403` | **challenge_expired** — the component transparently calls `GET /v1/challenge` again to obtain a fresh token, then enters the `error` state with a message telling the user to press Send report again. The retry reuses the freshly fetched token. |
-| `429` | **rate_limited** — `error` state with the server's message (or a generic "sending too quickly" message if none was provided). |
-| any other non-2xx, or a network failure | **error** — `error` state with the server's message (or a generic failure message). |
+| Status                                  | Client outcome                                                                                                                                                                                                                                     |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `200` or `202`                          | **accepted** — `{ id, issue }` from the body drive the success view. `issue` is `null` when no GitHub issue was created (still a successful report). The UI shows `id` only; `issue` is never surfaced (§2.2).                                     |
+| `403`                                   | **challenge_expired** — the component transparently calls `GET /v1/challenge` again to obtain a fresh token, then enters the `error` state with a message telling the user to press Send report again. The retry reuses the freshly fetched token. |
+| `429`                                   | **rate_limited** — `error` state with the server's message (or a generic "sending too quickly" message if none was provided).                                                                                                                      |
+| any other non-2xx, or a network failure | **error** — `error` state with the server's message (or a generic failure message).                                                                                                                                                                |
 
 No outcome is ever silently dropped; every branch above ends in a state the user can see.
 

@@ -82,18 +82,14 @@ describe("automatic screenshot (DOM rasterization)", () => {
   it("NEVER invokes the screen-share path automatically", async () => {
     captureViewportScreenshotMock.mockResolvedValue("data:image/png;base64,AUTO");
     await openPanel();
-    await waitFor(() =>
-      expect(screen.getByTestId("bugreport-screenshot-preview")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByTestId("bugreport-screenshot-preview")).toBeInTheDocument());
     expect(captureScreenMock).not.toHaveBeenCalled();
   });
 
   it("the auto screenshot is removable, and removal excludes it from the payload", async () => {
     captureViewportScreenshotMock.mockResolvedValue("data:image/png;base64,AUTO");
     const user = await openPanel();
-    await waitFor(() =>
-      expect(screen.getByTestId("bugreport-screenshot-preview")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByTestId("bugreport-screenshot-preview")).toBeInTheDocument());
 
     await user.click(screen.getByTestId("bugreport-screenshot-remove"));
     expect(screen.queryByTestId("bugreport-screenshot-preview")).not.toBeInTheDocument();
@@ -205,9 +201,7 @@ describe("network-error capture in the panel + payload", () => {
     expect(network).toHaveLength(1);
     expect(network[0]!.text).toMatch(/^GET https:\/\/api\.host\.test\/broken → 502 \(\d+ms\)$/);
     // Console entries keep their own levels alongside.
-    expect(logs.some((entry) => entry.level === "error" && entry.text.includes("app exploded"))).toBe(
-      true,
-    );
+    expect(logs.some((entry) => entry.level === "error" && entry.text.includes("app exploded"))).toBe(true);
     // Chronological interleave: ts_ms is non-decreasing.
     for (let i = 1; i < logs.length; i += 1) {
       expect(logs[i]!.ts_ms).toBeGreaterThanOrEqual(logs[i - 1]!.ts_ms);
@@ -246,9 +240,7 @@ describe("network-error capture in the panel + payload", () => {
     });
     await user.click(screen.getByTestId("bugreport-cancel"));
     await user.click(screen.getByTestId("bugreport-launcher"));
-    expect(screen.getByTestId("bugreport-diagnostics-hint")).toHaveTextContent(
-      /captured automatically/i,
-    );
+    expect(screen.getByTestId("bugreport-diagnostics-hint")).toHaveTextContent(/captured automatically/i);
   });
 });
 
@@ -271,7 +263,7 @@ describe("app version in the payload", () => {
     expect(payload.app_version).toBe("1.0.0");
   });
 
-  it("auto-detects <meta name=\"app-version\"> when the prop is omitted", async () => {
+  it('auto-detects <meta name="app-version"> when the prop is omitted', async () => {
     const meta = document.createElement("meta");
     meta.setAttribute("name", "app-version");
     meta.setAttribute("content", "4.5.6");

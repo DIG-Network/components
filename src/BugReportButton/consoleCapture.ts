@@ -96,8 +96,7 @@ export function installConsoleCapture(maxEntries = 300): ConsoleCaptureHandle {
 
   const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
     const reason = event.reason;
-    const text =
-      reason instanceof Error ? `${reason.name}: ${reason.message}` : formatArgs([reason]);
+    const text = reason instanceof Error ? `${reason.name}: ${reason.message}` : formatArgs([reason]);
     push("error", `Unhandled rejection: ${text}`);
   };
 

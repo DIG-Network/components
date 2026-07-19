@@ -35,10 +35,7 @@ describe("fetchChallenge", () => {
   });
 
   it("throws an ApiError when fetch itself rejects (network failure)", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockRejectedValue(new TypeError("network down")),
-    );
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("network down")));
     await expect(fetchChallenge(API_BASE)).rejects.toBeInstanceOf(ApiError);
   });
 });

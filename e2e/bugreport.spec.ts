@@ -43,7 +43,10 @@ async function prepare(page: Page): Promise<void> {
         status: 202,
         headers: cors,
         contentType: "application/json",
-        body: JSON.stringify({ id: "e2e-report-42", issue: { number: 7, url: "https://github.com/DIG-Network/hub.dig.net/issues/7" } }),
+        body: JSON.stringify({
+          id: "e2e-report-42",
+          issue: { number: 7, url: "https://github.com/DIG-Network/hub.dig.net/issues/7" },
+        }),
       });
       return;
     }
@@ -75,7 +78,9 @@ async function openPanel(page: Page): Promise<void> {
 }
 
 test.describe("a11y — WCAG 2.2 AA including target-size (#218)", () => {
-  test("the OPEN panel passes axe with wcag2a/aa + wcag21aa + wcag22aa (no suppressions)", async ({ page }) => {
+  test("the OPEN panel passes axe with wcag2a/aa + wcag21aa + wcag22aa (no suppressions)", async ({
+    page,
+  }) => {
     await prepare(page);
     await openPanel(page);
     // Expand both disclosures so their content is part of the scan.
@@ -88,7 +93,9 @@ test.describe("a11y — WCAG 2.2 AA including target-size (#218)", () => {
     expect(results.violations).toEqual([]);
   });
 
-  test("the target-size rule specifically passes on the open panel (previously suppressed)", async ({ page }) => {
+  test("the target-size rule specifically passes on the open panel (previously suppressed)", async ({
+    page,
+  }) => {
     await prepare(page);
     await openPanel(page);
     await page.getByTestId("bugreport-console-toggle").click();
@@ -109,7 +116,9 @@ test.describe("a11y — WCAG 2.2 AA including target-size (#218)", () => {
 });
 
 test.describe("automatic screenshot — DOM rasterization, never getDisplayMedia", () => {
-  test("opening the panel produces a PNG preview without invoking the screen-share picker", async ({ page }) => {
+  test("opening the panel produces a PNG preview without invoking the screen-share picker", async ({
+    page,
+  }) => {
     await prepare(page);
     await openPanel(page);
 
@@ -133,7 +142,9 @@ test.describe("automatic screenshot — DOM rasterization, never getDisplayMedia
     writeFileSync(`${SHOTS}/captured-page-screenshot.png`, Buffer.from(base64, "base64"));
   });
 
-  test("the captured shot excludes the widget (no panel pixels in the top-left card area)", async ({ page }) => {
+  test("the captured shot excludes the widget (no panel pixels in the top-left card area)", async ({
+    page,
+  }) => {
     await prepare(page);
     await openPanel(page);
     const preview = page.getByTestId("bugreport-screenshot-preview");
@@ -153,7 +164,9 @@ test.describe("automatic screenshot — DOM rasterization, never getDisplayMedia
 });
 
 test.describe("full report flow", () => {
-  test("filling + sending reaches the success state with the report reference and NO issue link", async ({ page }) => {
+  test("filling + sending reaches the success state with the report reference and NO issue link", async ({
+    page,
+  }) => {
     await prepare(page);
     await openPanel(page);
     await page.getByTestId("bugreport-description-input").fill("The capsule list failed to load.");

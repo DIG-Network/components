@@ -25,8 +25,7 @@ export interface DisclosureProps {
 }
 
 export function Disclosure(props: DisclosureProps): JSX.Element {
-  const { label, count, expanded, onToggle, regionId, containerTestId, toggleTestId, children } =
-    props;
+  const { label, count, expanded, onToggle, regionId, containerTestId, toggleTestId, children } = props;
   return (
     <section className="digbr-disclosure" data-testid={containerTestId} aria-label={label}>
       <button

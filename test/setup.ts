@@ -19,6 +19,5 @@ if (typeof (globalThis as { PromiseRejectionEvent?: unknown }).PromiseRejectionE
       this.reason = init.reason;
     }
   }
-  (globalThis as { PromiseRejectionEvent?: unknown }).PromiseRejectionEvent =
-    PromiseRejectionEventPolyfill;
+  (globalThis as { PromiseRejectionEvent?: unknown }).PromiseRejectionEvent = PromiseRejectionEventPolyfill;
 }

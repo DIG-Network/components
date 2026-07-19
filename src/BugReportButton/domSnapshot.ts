@@ -98,12 +98,7 @@ function snapshotCanvas(source: HTMLCanvasElement, doc: Document, view: Window):
 }
 
 /** Recursive worker for {@link cloneViewport}. Returns null for nodes that must be dropped. */
-function cloneNodeDeep(
-  node: Node,
-  doc: Document,
-  view: Window,
-  budget: { remaining: number },
-): Node | null {
+function cloneNodeDeep(node: Node, doc: Document, view: Window, budget: { remaining: number }): Node | null {
   if (node.nodeType === Node.TEXT_NODE) {
     return node.cloneNode(false);
   }

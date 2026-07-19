@@ -161,9 +161,7 @@ describe("<BugReportButton> — accessibility", () => {
     await screen.findByRole("dialog");
 
     expect(screen.getByLabelText(/^title/i)).toBe(screen.getByTestId("bugreport-title-input"));
-    expect(screen.getByLabelText(/what happened/i)).toBe(
-      screen.getByTestId("bugreport-description-input"),
-    );
+    expect(screen.getByLabelText(/what happened/i)).toBe(screen.getByTestId("bugreport-description-input"));
     expect(screen.getByLabelText(/^contact/i)).toBe(screen.getByTestId("bugreport-contact-input"));
     expect(screen.getByLabelText(/attach a screenshot image/i)).toBe(
       screen.getByTestId("bugreport-screenshot-file-input"),

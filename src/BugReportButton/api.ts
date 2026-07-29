@@ -86,11 +86,33 @@ async function readErrorMessage(response: Response): Promise<string | undefined>
 }
 
 /**
+ * Localized fallback copy for the two failure paths where `submitReport` must synthesize its own
+ * message (a thrown transport error with no `Error.message`, and a non-2xx response with no error
+ * envelope). Supplied by the caller so this module stays UI/framework-agnostic — it owns the wire
+ * contract, never the copy. Both default to English so `submitReport` is usable standalone.
+ */
+export interface SubmitReportFallbacks {
+  /** Used when the fetch rejects with a non-`Error` (no `.message` to surface). */
+  networkError: string;
+  /** Prefix for a non-2xx response with no error envelope; the HTTP status is appended as " (<status>).". */
+  requestFailed: string;
+}
+
+const DEFAULT_SUBMIT_FALLBACKS: SubmitReportFallbacks = {
+  networkError: "Network error — could not send the report.",
+  requestFailed: "Request failed",
+};
+
+/**
  * POST {apiBase}/v1/reports. Never throws — every outcome (success, expired challenge, rate
  * limit, or any other failure) is represented in the returned discriminated union so the UI can
  * render an honest state instead of an unhandled rejection.
  */
-export async function submitReport(apiBase: string, payload: ReportPayload): Promise<SubmitReportResult> {
+export async function submitReport(
+  apiBase: string,
+  payload: ReportPayload,
+  fallbacks: SubmitReportFallbacks = DEFAULT_SUBMIT_FALLBACKS,
+): Promise<SubmitReportResult> {
   let response: Response;
   try {
     response = await fetch(`${apiBase}/v1/reports`, {
@@ -101,7 +123,7 @@ export async function submitReport(apiBase: string, payload: ReportPayload): Pro
   } catch (cause) {
     return {
       status: "error",
-      message: cause instanceof Error ? cause.message : "Network error — could not send the report.",
+      message: cause instanceof Error ? cause.message : fallbacks.networkError,
     };
   }
 
@@ -114,7 +136,7 @@ export async function submitReport(apiBase: string, payload: ReportPayload): Pro
   if (!response.ok) {
     return {
       status: "error",
-      message: (await readErrorMessage(response)) ?? `Request failed (${response.status}).`,
+      message: (await readErrorMessage(response)) ?? `${fallbacks.requestFailed} (${response.status}).`,
     };
   }
 

@@ -40,6 +40,7 @@ bugreport.dig.net service (or a compatible `apiBase`) exactly as described here.
 | `position`   | `"bottom-right" \| "bottom-left"`                         | no       | `"bottom-right"`                                              |
 | `appVersion` | `string`                                                  | no       | auto-detected (§2.8)                                          |
 | `theme`      | `{ accentColor?: string; accentColorSecondary?: string }` | no       | `{ accentColor: "#7a3dff", accentColorSecondary: "#c13de0" }` |
+| `messages`   | `Partial<BugReportMessages>`                              | no       | English defaults (`DEFAULT_MESSAGES`, §2.10)                  |
 
 `repo` is passed through verbatim to the server, which validates it against its own allowlist
 (§3.4 of bugreport.dig.net's `SPEC.md`). This package does not itself validate `repo` — the server
@@ -301,6 +302,37 @@ including `target-size`**.
   deterministically. The 0.1.0 test ids are preserved; 0.1.1 adds `bugreport-network-details`,
   `bugreport-network-toggle`, `bugreport-network-list`, `bugreport-network-remove`,
   `bugreport-screen-capture`, and `bugreport-diagnostics-hint`.
+
+### 2.10 Internationalization (i18n)
+
+Every user-visible string the widget renders is sourced from a typed dictionary,
+**`BugReportMessages`** (exported), so a host app can present the widget in any of the ecosystem's
+locales instead of the untranslated English literals. The mechanism is a single optional prop:
+
+- **`messages?: Partial<BugReportMessages>`** — a partial override the host supplies from its own
+  i18n catalog. The widget merges it over **`DEFAULT_MESSAGES`** (the exported canonical English
+  copy, the single source of defaults): `{ ...DEFAULT_MESSAGES, ...messages }`. Any omitted key
+  falls back to its English default, so a host may translate any subset. Omitting `messages`
+  entirely renders the exact English defaults — the prop is **purely additive and
+  backwards-compatible**; an existing consumer that passes no `messages` behaves identically to
+  before it existed.
+- **Coverage.** `BugReportMessages` has one field per user-visible string: the launcher/close
+  `aria-label`s, the panel heading + subtitle, every field label + placeholder (title, description,
+  contact) + the "(optional)" suffix, the screenshot section (label, image `alt`, captions,
+  attach/replace button + `aria-label`, capture-screen button + caption, remove button), the
+  diagnostics section (label, both hint variants, the console/network disclosure labels + list
+  `aria-label`s, the empty-log placeholder, the remove-from-report button), the submit button (its
+  default/sending/retry labels) + footnote, the three `aria-live` status texts, the success view
+  (heading, note, done button), and the four fallback error strings (session-start, session-expired,
+  rate-limited, network-error, request-failed).
+- **Brand/scheme tokens are NON-translatable.** `$DIG`, `XCH`, `DIGHub`, `chia://`, and `dig://`
+  MUST be preserved verbatim inside any translated string. The current copy embeds none; a future
+  string needing one keeps the token as a literal constant so translation can never mangle it.
+- **The `api.ts` module stays UI-agnostic.** The two fallback error strings it must synthesize
+  (transport failure, non-2xx with no error envelope) are passed IN by the component
+  (`submitReport(apiBase, payload, fallbacks)`) rather than hardcoded there — the component owns the
+  copy, the api layer owns the wire contract. For the request-failed fallback the failing HTTP
+  status is appended as `" (<status>)."`.
 
 ---
 

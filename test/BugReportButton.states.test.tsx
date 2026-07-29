@@ -273,7 +273,6 @@ describe("<BugReportButton> — console log preview", () => {
     // The capture-from-mount subscription updates component state synchronously, so this direct
     // console call (standing in for app code logging during normal use) is wrapped in act().
     act(() => {
-      // eslint-disable-next-line no-console -- exercising the capture-from-mount behavior
       console.log("captured before opening the panel");
     });
 
@@ -296,7 +295,6 @@ describe("<BugReportButton> — console log preview", () => {
   it("removing the console log excludes it from the next submission", async () => {
     render(<BugReportButton repo="hub.dig.net" />);
     act(() => {
-      // eslint-disable-next-line no-console -- exercising removal of captured entries
       console.warn("sensitive detail");
     });
 

@@ -182,7 +182,6 @@ describe("network-error capture in the panel + payload", () => {
     render(<BugReportButton repo="hub.dig.net" />);
 
     act(() => {
-      // eslint-disable-next-line no-console -- interleave a console entry with the network one
       console.error("app exploded");
     });
     await act(async () => {
@@ -235,7 +234,6 @@ describe("network-error capture in the panel + payload", () => {
     );
 
     act(() => {
-      // eslint-disable-next-line no-console -- flips the hint to the "captured automatically" copy
       console.error("now there is one");
     });
     await user.click(screen.getByTestId("bugreport-cancel"));

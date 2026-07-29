@@ -13,6 +13,8 @@ export interface BugReportButtonTheme {
   accentColorSecondary?: string;
 }
 
+import type { BugReportMessages } from "./messages";
+
 /** Props for {@link BugReportButton}. */
 export interface BugReportButtonProps {
   /** Target repo: the report is filed as a GitHub issue in the named `repo` (validated against the bug-report service's allowlist). E.g. "hub.dig.net" or "xchtip.app". */
@@ -29,4 +31,12 @@ export interface BugReportButtonProps {
   appVersion?: string;
   /** Optional accent theming. */
   theme?: BugReportButtonTheme;
+  /**
+   * Optional localized copy. Every user-visible string the widget renders has an English default
+   * (see {@link BugReportMessages}/`DEFAULT_MESSAGES`); pass a partial override — sourced from the
+   * host app's own i18n catalog — to translate any subset. Omitted (or partial) keys fall back to
+   * English, so this is purely additive and backwards-compatible. Brand/scheme tokens ($DIG,
+   * chia://, DIGHub, dig://, XCH) MUST be preserved verbatim in any translated string.
+   */
+  messages?: Partial<BugReportMessages>;
 }

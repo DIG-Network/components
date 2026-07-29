@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ChangeEvent, FormEvent, JSX } from "react";
 import type { BugReportButtonProps } from "./types";
 import type { ConsoleLogEntry } from "./consoleCapture";
@@ -13,6 +13,7 @@ import {
 import { WIDGET_MARKER_ATTR } from "./domSnapshot";
 import { resolveAppVersion } from "./appVersion";
 import { fetchChallenge, submitReport } from "./api";
+import { DEFAULT_MESSAGES } from "./messages";
 import { useFocusTrap } from "./useFocusTrap";
 import { Disclosure } from "./Disclosure";
 import { BugIcon, CheckIcon, CloseIcon, WarnIcon } from "./icons";
@@ -56,7 +57,9 @@ async function waitForRepaint(): Promise<void> {
  * "Capture screen" opt-in).
  */
 export function BugReportButton(props: BugReportButtonProps): JSX.Element {
-  const { repo, apiBase = DEFAULT_API_BASE, position = "bottom-right", appVersion, theme } = props;
+  const { repo, apiBase = DEFAULT_API_BASE, position = "bottom-right", appVersion, theme, messages } = props;
+  // Resolve host-supplied overrides over the English defaults once; omitted keys stay English.
+  const msg = useMemo(() => ({ ...DEFAULT_MESSAGES, ...messages }), [messages]);
   const accent = theme?.accentColor ?? DEFAULT_ACCENT_COLOR;
   // A custom accent without an explicit endpoint renders solid (never a mismatched gradient).
   const accentSecondary =
@@ -219,7 +222,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
       const token = challengeToken ?? (await refreshChallenge());
       if (!token) {
         setStatus("error");
-        setErrorMessage("Could not start a report session. Please try again.");
+        setErrorMessage(msg.sessionStartError);
         return;
       }
 
@@ -229,20 +232,24 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
         (a, b) => a.ts_ms - b.ts_ms,
       );
 
-      const outcome = await submitReport(apiBase, {
-        repo,
-        title: title.trim() || undefined,
-        description: description.trim(),
-        reporter_contact: reporterContact.trim() || undefined,
-        url: typeof window !== "undefined" ? window.location.href : undefined,
-        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
-        app_version: resolveAppVersion(appVersion),
-        console_logs: mergedLogs.length > 0 ? mergedLogs : undefined,
-        screenshot: screenshot ?? undefined,
-        challenge_token: token,
-        hp,
-        opened_at_ms: openedAt ?? Date.now(),
-      });
+      const outcome = await submitReport(
+        apiBase,
+        {
+          repo,
+          title: title.trim() || undefined,
+          description: description.trim(),
+          reporter_contact: reporterContact.trim() || undefined,
+          url: typeof window !== "undefined" ? window.location.href : undefined,
+          user_agent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
+          app_version: resolveAppVersion(appVersion),
+          console_logs: mergedLogs.length > 0 ? mergedLogs : undefined,
+          screenshot: screenshot ?? undefined,
+          challenge_token: token,
+          hp,
+          opened_at_ms: openedAt ?? Date.now(),
+        },
+        { networkError: msg.networkErrorFallback, requestFailed: msg.requestFailedFallback },
+      );
 
       if (outcome.status === "accepted") {
         setStatus("success");
@@ -252,14 +259,12 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
       if (outcome.status === "challenge_expired") {
         await refreshChallenge();
         setStatus("error");
-        setErrorMessage("Your report session expired. Press Send report to try again.");
+        setErrorMessage(msg.sessionExpiredError);
         return;
       }
       if (outcome.status === "rate_limited") {
         setStatus("error");
-        setErrorMessage(
-          outcome.message ?? "You're sending reports too quickly. Please wait a moment and try again.",
-        );
+        setErrorMessage(outcome.message ?? msg.rateLimitedFallback);
         return;
       }
       setStatus("error");
@@ -272,6 +277,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
       consoleEntries,
       description,
       hp,
+      msg,
       networkEntries,
       openedAt,
       refreshChallenge,
@@ -285,21 +291,23 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
 
   const statusText =
     status === "sending"
-      ? "Sending report…"
+      ? msg.statusSending
       : status === "success"
-        ? "Report sent."
+        ? msg.statusSuccess
         : status === "error"
-          ? (errorMessage ?? "Something went wrong.")
+          ? (errorMessage ?? msg.statusGenericError)
           : "";
 
   const sending = status === "sending";
   const submitDisabled = sending || description.trim() === "";
-  const submitLabel = sending ? "Sending…" : status === "error" ? "Retry" : "Send report";
+  const submitLabel = sending
+    ? msg.submitButtonSending
+    : status === "error"
+      ? msg.submitButtonRetry
+      : msg.submitButton;
 
   const hasDiagnostics = consoleEntries.length > 0 || networkEntries.length > 0;
-  const diagnosticsHint = hasDiagnostics
-    ? "Console and network errors are captured automatically. If you saw an error that isn't listed, describe it above."
-    : "No console or network errors were captured on this page. If you saw an error message, please include it in your description.";
+  const diagnosticsHint = hasDiagnostics ? msg.diagnosticsHintWithErrors : msg.diagnosticsHintNoErrors;
 
   const accentVars = {
     "--digbr-accent": accent,
@@ -316,7 +324,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
         data-testid="bugreport-launcher"
         aria-haspopup="dialog"
         aria-expanded={panelOpen}
-        aria-label="Report a bug"
+        aria-label={msg.launcherAriaLabel}
         onClick={handleLauncherClick}
         style={accentVars}
         {...widgetMarker}
@@ -349,15 +357,15 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
               </span>
               <div className="digbr-header-text">
                 <h2 id="bugreport-heading" className="digbr-title">
-                  Report a bug
+                  {msg.panelHeading}
                 </h2>
-                <p className="digbr-subtitle">Goes straight to the team that builds this app.</p>
+                <p className="digbr-subtitle">{msg.panelSubtitle}</p>
               </div>
               <button
                 type="button"
                 className="digbr-close"
                 data-testid="bugreport-cancel"
-                aria-label="Close report form"
+                aria-label={msg.closeAriaLabel}
                 onClick={closePanel}
               >
                 <CloseIcon />
@@ -374,10 +382,8 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                   <span className="digbr-success-check" aria-hidden="true">
                     <CheckIcon />
                   </span>
-                  <h3 className="digbr-success-title">Report sent — thank you!</h3>
-                  <p className="digbr-success-note">
-                    The team will take a look. Keep this reference if you'd like to follow up:
-                  </p>
+                  <h3 className="digbr-success-title">{msg.successHeading}</h3>
+                  <p className="digbr-success-note">{msg.successNote}</p>
                   <code className="digbr-ref" data-testid="bugreport-report-id">
                     {result.id}
                   </code>
@@ -387,7 +393,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                     data-testid="bugreport-done"
                     onClick={closePanel}
                   >
-                    Done
+                    {msg.doneButton}
                   </button>
                 </div>
               ) : (
@@ -409,13 +415,13 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
 
                   <div className="digbr-field">
                     <label htmlFor="bugreport-title" className="digbr-label">
-                      Title <span className="digbr-optional">(optional)</span>
+                      {msg.titleLabel} <span className="digbr-optional">{msg.optionalSuffix}</span>
                     </label>
                     <input
                       id="bugreport-title"
                       className="digbr-input"
                       data-testid="bugreport-title-input"
-                      placeholder="One-line summary"
+                      placeholder={msg.titlePlaceholder}
                       value={title}
                       onChange={(event) => setTitle(event.target.value)}
                       disabled={sending}
@@ -424,7 +430,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
 
                   <div className="digbr-field">
                     <label htmlFor="bugreport-description" className="digbr-label">
-                      What happened?{" "}
+                      {msg.descriptionLabel}{" "}
                       <span className="digbr-req" aria-hidden="true">
                         *
                       </span>
@@ -433,7 +439,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                       id="bugreport-description"
                       className="digbr-textarea"
                       data-testid="bugreport-description-input"
-                      placeholder="What did you do, what did you expect, and what went wrong?"
+                      placeholder={msg.descriptionPlaceholder}
                       value={description}
                       onChange={(event) => setDescription(event.target.value)}
                       disabled={sending}
@@ -443,13 +449,13 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
 
                   <div className="digbr-field">
                     <label htmlFor="bugreport-contact" className="digbr-label">
-                      Contact <span className="digbr-optional">(optional)</span>
+                      {msg.contactLabel} <span className="digbr-optional">{msg.optionalSuffix}</span>
                     </label>
                     <input
                       id="bugreport-contact"
                       className="digbr-input"
                       data-testid="bugreport-contact-input"
-                      placeholder="Email or handle, if you'd like a reply"
+                      placeholder={msg.contactPlaceholder}
                       value={reporterContact}
                       onChange={(event) => setReporterContact(event.target.value)}
                       disabled={sending}
@@ -458,14 +464,14 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
 
                   <div className="digbr-field">
                     <span className="digbr-label" id="bugreport-screenshot-label">
-                      Screenshot
+                      {msg.screenshotLabel}
                     </span>
                     {screenshot ? (
                       <>
                         <div className="digbr-shot">
                           <img
                             src={screenshot}
-                            alt="Screenshot preview that will be sent with this report"
+                            alt={msg.screenshotAlt}
                             data-testid="bugreport-screenshot-preview"
                             className="digbr-shot-img"
                           />
@@ -476,33 +482,26 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                             onClick={handleRemoveScreenshot}
                             disabled={sending}
                           >
-                            Remove
+                            {msg.removeButton}
                           </button>
                         </div>
                         {screenshotOrigin === "auto" && (
-                          <p className="digbr-shot-caption">
-                            Captured automatically — the report panel itself is never included. Remove or
-                            replace it if it isn't helpful.
-                          </p>
+                          <p className="digbr-shot-caption">{msg.screenshotAutoCaption}</p>
                         )}
                       </>
                     ) : (
-                      <p className="digbr-shot-caption">
-                        No screenshot attached. Add one below if it helps explain the problem.
-                      </p>
+                      <p className="digbr-shot-caption">{msg.screenshotEmptyCaption}</p>
                     )}
                     <div className="digbr-attach-row">
                       <span className="digbr-filebtn">
                         <span className="digbr-btn-secondary" aria-hidden="true">
-                          {screenshot ? "Replace image" : "Attach image"}
+                          {screenshot ? msg.replaceImageButton : msg.attachImageButton}
                         </span>
                         <input
                           type="file"
                           accept="image/png,image/jpeg"
                           className="digbr-file-input"
-                          aria-label={
-                            screenshot ? "Replace the screenshot image" : "Attach a screenshot image"
-                          }
+                          aria-label={screenshot ? msg.replaceImageAriaLabel : msg.attachImageAriaLabel}
                           data-testid="bugreport-screenshot-file-input"
                           onChange={handleFileChange}
                           disabled={sending}
@@ -515,22 +514,19 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                         onClick={() => void handleScreenCapture()}
                         disabled={sending || capturingScreen}
                       >
-                        Capture screen
+                        {msg.captureScreenButton}
                       </button>
                     </div>
-                    <p className="digbr-shot-caption">
-                      "Capture screen" opens your browser's share dialog — use it when the automatic shot
-                      misses something (embedded frames, 3D content).
-                    </p>
+                    <p className="digbr-shot-caption">{msg.captureScreenCaption}</p>
                   </div>
 
                   <div className="digbr-diagnostics">
-                    <span className="digbr-label">Diagnostics</span>
+                    <span className="digbr-label">{msg.diagnosticsLabel}</span>
                     <p className="digbr-hint" data-testid="bugreport-diagnostics-hint">
                       {diagnosticsHint}
                     </p>
                     <Disclosure
-                      label="Console errors"
+                      label={msg.consoleErrorsLabel}
                       count={consoleEntries.length}
                       expanded={consoleExpanded}
                       onToggle={() => setConsoleExpanded((open) => !open)}
@@ -545,7 +541,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                           data-testid="bugreport-console-list"
                           className="digbr-log"
                           tabIndex={0}
-                          aria-label="Captured console errors"
+                          aria-label={msg.consoleListAriaLabel}
                         >
                           {consoleEntries.map((entry, index) => (
                             <li key={index} className={`digbr-log-${entry.level}`}>
@@ -555,7 +551,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                           ))}
                         </ul>
                       ) : (
-                        <p className="digbr-log-empty">Nothing captured on this page.</p>
+                        <p className="digbr-log-empty">{msg.logEmpty}</p>
                       )}
                       <div className="digbr-disclosure-actions">
                         <button
@@ -565,12 +561,12 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                           onClick={handleRemoveConsole}
                           disabled={sending}
                         >
-                          Remove from report
+                          {msg.removeFromReportButton}
                         </button>
                       </div>
                     </Disclosure>
                     <Disclosure
-                      label="Network errors"
+                      label={msg.networkErrorsLabel}
                       count={networkEntries.length}
                       expanded={networkExpanded}
                       onToggle={() => setNetworkExpanded((open) => !open)}
@@ -583,7 +579,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                           data-testid="bugreport-network-list"
                           className="digbr-log"
                           tabIndex={0}
-                          aria-label="Captured network errors"
+                          aria-label={msg.networkListAriaLabel}
                         >
                           {networkEntries.map((entry, index) => (
                             <li key={index} className="digbr-log-network">
@@ -593,7 +589,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                           ))}
                         </ul>
                       ) : (
-                        <p className="digbr-log-empty">Nothing captured on this page.</p>
+                        <p className="digbr-log-empty">{msg.logEmpty}</p>
                       )}
                       <div className="digbr-disclosure-actions">
                         <button
@@ -603,7 +599,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                           onClick={handleRemoveNetwork}
                           disabled={sending}
                         >
-                          Remove from report
+                          {msg.removeFromReportButton}
                         </button>
                       </div>
                     </Disclosure>
@@ -624,7 +620,7 @@ export function BugReportButton(props: BugReportButtonProps): JSX.Element {
                   >
                     {submitLabel}
                   </button>
-                  <p className="digbr-footnote">Nothing is sent until you press Send report.</p>
+                  <p className="digbr-footnote">{msg.submitFootnote}</p>
                 </form>
               )}
             </div>

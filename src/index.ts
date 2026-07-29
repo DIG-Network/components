@@ -4,10 +4,11 @@
  * Add new components as sibling directories under src/ (co-located with their own types/tests),
  * and re-export them here. First component: BugReportButton.
  */
-export { BugReportButton, resolveAppVersion } from "./BugReportButton";
+export { BugReportButton, resolveAppVersion, DEFAULT_MESSAGES } from "./BugReportButton";
 export type {
   BugReportButtonProps,
   BugReportButtonTheme,
+  BugReportMessages,
   ConsoleLogEntry,
   ConsoleLogLevel,
   NetworkLogEntry,

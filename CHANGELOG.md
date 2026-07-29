@@ -4,6 +4,11 @@ All notable changes to this project are documented here.
 This project adheres to [Semantic Versioning](https://semver.org) and
 [Conventional Commits](https://www.conventionalcommits.org).
 
+## [0.1.7] - 2026-07-29
+
+### CI
+- **components:** Add ESLint gate (+ react-hooks) §2.4a + fix repo-prop doc (#1814)
+
 ## [0.1.6] - 2026-07-19
 
 ### Chores

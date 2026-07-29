@@ -15,7 +15,7 @@ export interface BugReportButtonTheme {
 
 /** Props for {@link BugReportButton}. */
 export interface BugReportButtonProps {
-  /** App identifier; filed to DIG-Network/dig_ecosystem with area: label. Must be on the allowlist. E.g. "hub.dig.net" or "xchtip.app". */
+  /** Target repo: the report is filed as a GitHub issue in the named `repo` (validated against the bug-report service's allowlist). E.g. "hub.dig.net" or "xchtip.app". */
   repo: string;
   /** Bug-report service base URL. Defaults to `https://api.bugreport.dig.net`. */
   apiBase?: string;

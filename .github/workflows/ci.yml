@@ -30,6 +30,8 @@ jobs:
       - run: npm ci
       - name: format check
         run: npm run format:check
+      - name: lint (eslint)
+        run: npm run lint
       - name: typecheck
         run: npm run typecheck
       - name: build (ESM + CJS + d.ts)
